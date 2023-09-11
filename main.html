@@ -1,16 +1,136 @@
 <!DOCTYPE html>
-
 <html>
-
 <head>
-	<link rel="stylesheet" href="styles.css">
+  <style>
+    #gameContainer {
+      height: 400px;
+      width: 400px;
+      border: 1px solid black;
+      display: grid;
+      grid-template-columns: repeat(40, 1fr);
+      grid-template-rows: repeat(40, 1fr);
+    }
+
+    .food {
+      background-color: red;
+    }
+
+    .snakeBodyPixel {
+      background-color: green;
+    }
+
+    .scoreBoard {
+      font-size: 20px;
+      margin: 10px;
+    }
+  </style>
 </head>
-
 <body>
-	<!-- the entire body must be written by student -->
-    <script type="text/javascript" src="./script.js">
-</script>
+  <div class="scoreBoard">Score: <span id="score">0</span></div>
+  <div id="gameContainer"></div>
+  <script>
+    // Initialize the game variables
+    let score = 0; // The current score
+    let speed = 100; // The speed of the snake in ms
+    let direction = "right"; // The direction of the snake
+    let snake = [801]; // The array of snake body pixel ids
+    let food = null; // The id of the food pixel
+    let gameContainer = document.getElementById("gameContainer"); // The game container element
+    let scoreElement = document.getElementById("score"); // The score element
 
+    // Create the game grid pixels
+    for (let i = 1; i <= 1600; i++) {
+      let pixel = document.createElement("div");
+      pixel.id = "pixel" + i;
+      gameContainer.appendChild(pixel);
+    }
+
+    // Start the game loop
+    setInterval(gameLoop, speed);
+
+    // Handle the keyboard input
+    document.addEventListener("keydown", function(event) {
+      if (event.key == "ArrowUp" && direction != "down") {
+        direction = "up";
+      } else if (event.key == "ArrowDown" && direction != "up") {
+        direction = "down";
+      } else if (event.key == "ArrowLeft" && direction != "right") {
+        direction = "left";
+      } else if (event.key == "ArrowRight" && direction != "left") {
+        direction = "right";
+      }
+    });
+
+    // The game loop function
+    function gameLoop() {
+      // Move the snake according to the direction
+      let head = snake[0]; // The id of the snake head pixel
+      let row = Math.floor((head - 1) / 40) + 1; // The row number of the snake head pixel
+      let col = head - (row - 1) * 40; // The column number of the snake head pixel
+      let newHead; // The id of the new snake head pixel after moving
+
+      if (direction == "up") {
+        if (row == 1) { // If the snake hits the top edge, wrap around to the bottom edge
+          newHead = head + 1560;
+        } else { // Otherwise, move up by one row
+          newHead = head - 40;
+        }
+      } else if (direction == "down") {
+        if (row == 40) { // If the snake hits the bottom edge, wrap around to the top edge
+          newHead = head - 1560;
+        } else { // Otherwise, move down by one row
+          newHead = head + 40;
+        }
+      } else if (direction == "left") {
+        if (col == 1) { // If the snake hits the left edge, wrap around to the right edge
+          newHead = head + 39;
+        } else { // Otherwise, move left by one column
+          newHead = head - 1;
+        }
+      } else if (direction == "right") {
+        if (col == 40) { // If the snake hits the right edge, wrap around to the left edge
+          newHead = head - 39;
+        } else { // Otherwise, move right by one column
+          newHead = head + 1;
+        }
+      }
+
+      // Check if the snake eats itself or not
+      if (snake.includes(newHead)) {
+        alert("Game over! You ate yourself!");
+        location.reload(); // Restart the game
+        return;
+      }
+
+      // Add the new head to the snake array
+      snake.unshift(newHead);
+
+      // Check if the snake eats the food or not
+      if (newHead == food) {
+        score++; // Increase the score by one
+        scoreElement.textContent = score; // Update the score element
+        food = null; // Remove the food from the grid
+      } else {
+        // Remove the tail from the snake array and the grid
+        let tail = snake.pop();
+        document.getElementById("pixel" + tail).classList.remove("snakeBodyPixel");
+      }
+
+      // Update the snake pixels on the grid
+      for (let pixel of snake) {
+        document.getElementById("pixel" + pixel).classList.add("snakeBodyPixel");
+      }
+
+      // Generate a new food pixel if there is none
+      if (food == null) {
+        food = Math.floor(Math.random() * 1600) + 1; // Generate a random number between 1 and 1600
+        while (snake.includes(food)) { // Make sure the food pixel is not on the snake body
+          food = Math.floor(Math.random() * 1600) + 1;
+        }
+        document.getElementById("pixel" + food).classList.add("food"); // Add the food pixel to the grid
+      }
+    }
+  </script>
 </body>
-
 </html>
+
